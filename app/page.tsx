@@ -1,8 +1,12 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, ReactNode } from 'react';
 
-// Menu Options και banners ίδια όπως στο προηγούμενο
-const menuOptions = [
+// Types for menu options and banners
+interface MenuOption {
+  key: string;
+  label: string;
+}
+const menuOptions: MenuOption[] = [
   { key: 'upgrade', label: 'Αναβάθμιση προγράμματος' },
   { key: 'tasks', label: 'Εργασίες' },
   { key: 'mygpt', label: 'Τα AinaGPT μου' },
@@ -17,7 +21,7 @@ const menuOptions = [
   { key: 'logout', label: 'Αποσύνδεση' }
 ];
 
-const banners = {
+const banners: { [key: string]: string } = {
   upgrade: 'Μπορείς να αναβαθμίσεις το πρόγραμμα σου για περισσότερες δυνατότητες!',
   tasks: 'Εδώ βλέπεις τις εκκρεμείς εργασίες σου.',
   mygpt: 'Οι AinaGPT σου για εύκολη πρόσβαση!',
@@ -32,7 +36,12 @@ const banners = {
   logout: 'Έγινε αποσύνδεση από το AinaGPT.',
 };
 
-function DropDownMenu({ email, onSelect }) {
+// -------------- INTERFACES ΓΙΑ COMPONENTS --------------
+interface DropDownMenuProps {
+  email: string;
+  onSelect: (key: string) => void;
+}
+function DropDownMenu({ email, onSelect }: DropDownMenuProps) {
   const [open, setOpen] = useState(false);
   return (
     <div className="relative flex items-center">
@@ -40,6 +49,7 @@ function DropDownMenu({ email, onSelect }) {
         className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-black text-xl font-bold shadow border border-gray-200 ml-3"
         onClick={() => setOpen(!open)}
         title="Μενού χρήστη"
+        type="button"
       >
         D
       </button>
@@ -52,6 +62,7 @@ function DropDownMenu({ email, onSelect }) {
                 <button
                   className="w-full flex items-center text-left text-gray-800 hover:bg-gray-100 py-2 px-2 rounded-lg text-sm"
                   onClick={() => { onSelect(opt.key); setOpen(false); }}
+                  type="button"
                 >
                   {opt.label}
                 </button>
@@ -64,29 +75,51 @@ function DropDownMenu({ email, onSelect }) {
   );
 }
 
-function Banner({ content, onClose }) {
+interface BannerProps {
+  content?: string;
+  onClose: () => void;
+}
+function Banner({ content, onClose }: BannerProps) {
   if (!content) return null;
   return (
     <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-40 max-w-lg w-full bg-white border rounded-2xl shadow-lg px-6 py-5 flex items-center justify-between">
       <span className="text-gray-800 text-sm">{content}</span>
-      <button onClick={onClose} className="ml-4 text-lg text-gray-400 hover:text-black font-bold">×</button>
+      <button onClick={onClose} className="ml-4 text-lg text-gray-400 hover:text-black font-bold" type="button">×</button>
     </div>
   );
 }
 
-function SidebarToggle({ open, onToggle }) {
+interface SidebarToggleProps {
+  open: boolean;
+  onToggle: () => void;
+}
+function SidebarToggle({ open, onToggle }: SidebarToggleProps) {
   return (
     <button
       className="w-9 h-9 rounded-full flex items-center justify-center bg-gray-200 hover:bg-gray-300 border border-gray-200 shadow ml-3"
       onClick={onToggle}
       title={open ? 'Κλείσιμο sidebar' : 'Άνοιγμα sidebar'}
+      type="button"
     >
       <span className="text-lg">{open ? '←' : '☰'}</span>
     </button>
   );
 }
 
-function ChatSidebar({ open, sessions, activeSession, onSelect, onNew, onTab, currentTab }) {
+interface ChatSidebarProps {
+  open: boolean;
+  sessions: {
+    today: { id: string; title: string }[];
+    yesterday: { id: string; title: string }[];
+    week: { id: string; title: string }[];
+  };
+  activeSession: string;
+  onSelect: (id: string) => void;
+  onNew: () => void;
+  onTab: (tab: string) => void;
+  currentTab: string;
+}
+function ChatSidebar({ open, sessions, activeSession, onSelect, onNew, onTab, currentTab }: ChatSidebarProps) {
   if (!open) return null;
   return (
     <aside className="fixed left-0 top-0 h-full z-30 w-60 bg-white border-r shadow px-4 py-5 flex flex-col transition-all duration-200 font-sans">
@@ -96,6 +129,7 @@ function ChatSidebar({ open, sessions, activeSession, onSelect, onNew, onTab, cu
       <button
         className="mb-5 w-full bg-black text-white py-2 rounded-xl font-semibold"
         onClick={onNew}
+        type="button"
       >+ Νέα συνομιλία</button>
       <div className="flex gap-2 mb-4 text-xs font-medium">
         {['Σήμερα', 'Χτες', '7 μέρες'].map(tab => (
@@ -103,6 +137,7 @@ function ChatSidebar({ open, sessions, activeSession, onSelect, onNew, onTab, cu
             key={tab}
             onClick={() => onTab(tab)}
             className={`py-1 px-3 rounded-xl ${currentTab === tab ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'}`}
+            type="button"
           >
             {tab}
           </button>
@@ -114,6 +149,7 @@ function ChatSidebar({ open, sessions, activeSession, onSelect, onNew, onTab, cu
             <button
               className={`w-full text-left py-2 px-2 rounded-lg truncate ${activeSession === s.id ? "bg-gray-200 font-bold" : ""} text-xs`}
               onClick={() => onSelect(s.id)}
+              type="button"
             >{s.title}</button>
           </li>
         ))}
@@ -122,8 +158,7 @@ function ChatSidebar({ open, sessions, activeSession, onSelect, onNew, onTab, cu
   );
 }
 
-// Typing effect
-function useTypewriter(text, enabled = true, speed = 18) {
+function useTypewriter(text: string, enabled = true, speed = 18) {
   const [displayed, setDisplayed] = useState('');
   useEffect(() => {
     if (!enabled) return setDisplayed(text);
@@ -140,12 +175,16 @@ function useTypewriter(text, enabled = true, speed = 18) {
 }
 
 // Google sign in dummy
-function GoogleButton({ onClick }) {
+interface GoogleButtonProps {
+  onClick: () => void;
+}
+function GoogleButton({ onClick }: GoogleButtonProps) {
   return (
     <button
       onClick={onClick}
       className="w-full flex items-center justify-center gap-2 border border-gray-300 text-black bg-white py-2 rounded-full font-semibold text-lg shadow-sm hover:bg-gray-100 mb-2"
       style={{fontFamily: 'sans-serif'}}
+      type="button"
     >
       <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="" className="w-5 h-5" />
       <span>Σύνδεση με Google</span>
@@ -153,8 +192,12 @@ function GoogleButton({ onClick }) {
   );
 }
 
-// Welcome Modal Styled
-function WelcomeModal({ onLogin, onSignup, onGoogle }) {
+interface WelcomeModalProps {
+  onLogin: () => void;
+  onSignup: () => void;
+  onGoogle: () => void;
+}
+function WelcomeModal({ onLogin, onSignup, onGoogle }: WelcomeModalProps) {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full flex flex-col items-center font-sans border">
@@ -167,6 +210,7 @@ function WelcomeModal({ onLogin, onSignup, onGoogle }) {
           className="w-full mb-2 bg-black text-white py-2 rounded-full font-semibold text-lg border-2 border-black"
           style={{boxShadow: '0 2px 0 #000'}}
           onClick={onLogin}
+          type="button"
         >
           Σύνδεση
         </button>
@@ -174,17 +218,21 @@ function WelcomeModal({ onLogin, onSignup, onGoogle }) {
           className="w-full border-2 border-black text-black py-2 rounded-full font-semibold text-lg bg-white"
           style={{boxShadow: '0 1px 0 #000'}}
           onClick={onSignup}
+          type="button"
         >
           Εγγραφή
         </button>
-        <button className="mt-4 text-xs text-gray-500 underline">Διατήρηση αποσύνδεσης</button>
+        <button className="mt-4 text-xs text-gray-500 underline" type="button">Διατήρηση αποσύνδεσης</button>
       </div>
     </div>
   );
 }
 
-// Email Verification Modal Styled
-function EmailVerification({ email, onVerify }) {
+interface EmailVerificationProps {
+  email: string;
+  onVerify: (code: string) => void;
+}
+function EmailVerification({ email, onVerify }: EmailVerificationProps) {
   const [code, setCode] = useState('');
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/10 z-50">
@@ -202,10 +250,11 @@ function EmailVerification({ email, onVerify }) {
         <button
           className="bg-green-600 text-white rounded-lg py-2 w-full mb-2 font-semibold text-lg"
           onClick={() => onVerify(code)}
+          type="button"
         >
           Συνέχεια
         </button>
-        <button className="text-xs text-gray-500 underline mb-2">Επανάληψη αποστολής email</button>
+        <button className="text-xs text-gray-500 underline mb-2" type="button">Επανάληψη αποστολής email</button>
         <div className="flex mt-4 gap-6 text-xs text-green-700 font-medium w-full justify-center">
           <span>Όροι χρήσης</span>
           <span>Πολιτική απορρήτου</span>
@@ -215,28 +264,43 @@ function EmailVerification({ email, onVerify }) {
   );
 }
 
-// Πληρωμή modal
-function PaymentBanner({ onClose, onStripe }) {
+interface PaymentBannerProps {
+  onClose: () => void;
+  onStripe: () => void;
+}
+function PaymentBanner({ onClose, onStripe }: PaymentBannerProps) {
   return (
     <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full bg-white border rounded-2xl shadow-xl px-6 py-6 flex flex-col items-center">
       <span className="text-gray-800 text-base mb-3 font-semibold">Έφτασες το όριο δωρεάν μηνυμάτων! Για να συνεχίσεις, χρειάζεται να ενεργοποιήσεις συνδρομή.</span>
       <button
         onClick={onStripe}
         className="w-full bg-blue-600 text-white rounded-full py-2 px-6 font-semibold mb-3"
+        type="button"
       >
         Πληρωμή με Stripe
       </button>
-      <button className="text-xs text-gray-500 underline" onClick={onClose}>
+      <button className="text-xs text-gray-500 underline" onClick={onClose} type="button">
         Κλείσιμο
       </button>
     </div>
   );
 }
 
-// Main Chat UI
-function ChatUI({ user }) {
+// ------------ CHAT UI ------------
+interface ChatUIProps {
+  user: string;
+}
+interface Message {
+  from: string;
+  text: string;
+}
+function ChatUI({ user }: ChatUIProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [sessions, setSessions] = useState({
+  const [sessions, setSessions] = useState<{
+    today: { id: string; title: string }[];
+    yesterday: { id: string; title: string }[];
+    week: { id: string; title: string }[];
+  }>({
     today: [{ id: '1', title: '...' }],
     yesterday: [],
     week: [],
@@ -244,35 +308,33 @@ function ChatUI({ user }) {
   const [currentTab, setCurrentTab] = useState('Σήμερα');
   const [activeSession, setActiveSession] = useState('1');
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [answerCount, setAnswerCount] = useState(0);
 
   const lastMessage = messages.length ? messages[messages.length - 1] : null;
   const typingBot = lastMessage && lastMessage.from === 'bot';
   const typewriterText = useTypewriter(lastMessage?.text || '', typingBot);
 
-  const [bannerKey, setBannerKey] = useState(null);
+  const [bannerKey, setBannerKey] = useState<string | null>(null);
   const [showPayment, setShowPayment] = useState(false);
 
-  // ---- Για την αποθήκευση τίτλου με βάση την πρώτη λέξη
+  // Για την αποθήκευση τίτλου με βάση την πρώτη λέξη
   useEffect(() => {
     if (messages.length === 1) {
-      // Αλλάζουμε το τρέχον session title με την πρώτη λέξη
       const firstWord = messages[0].text.split(' ')[0];
       setSessions(s => ({
         ...s,
         today: s.today.map(sess => sess.id === activeSession ? { ...sess, title: firstWord || 'Συνομιλία' } : sess),
       }));
     }
-    // Μετά τα 20 μηνύματα, εμφάνισε το banner πληρωμής
     if (answerCount >= 20) setShowPayment(true);
   }, [messages, answerCount, activeSession]);
 
   // Μικρόφωνο (demo)
   const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef(null);
+  const recognitionRef = useRef<any>(null);
   const handleMic = () => {
-    if (!('webkitSpeechRecognition' in window)) {
+    if (typeof window === 'undefined' || !('webkitSpeechRecognition' in window)) {
       alert('Δεν υποστηρίζεται το μικρόφωνο σε αυτόν τον browser!');
       return;
     }
@@ -281,11 +343,11 @@ function ChatUI({ user }) {
       setIsListening(false);
       return;
     }
-    const recognition = new window.webkitSpeechRecognition();
+    const recognition = new (window as any).webkitSpeechRecognition();
     recognition.lang = 'el-GR';
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.onresult = e => {
+    recognition.onresult = (e: any) => {
       if (e.results[0]) setInput(e.results[0][0].transcript);
       setIsListening(false);
     };
@@ -306,7 +368,7 @@ function ChatUI({ user }) {
     }, 700);
   };
 
-  const handleSelectSession = id => {
+  const handleSelectSession = (id: string) => {
     setActiveSession(id);
     setMessages([]);
     setAnswerCount(0);
@@ -322,7 +384,7 @@ function ChatUI({ user }) {
     setAnswerCount(0);
   };
 
-  const handleUpload = e => {
+  const handleUpload = () => {
     alert('Αρχείο ανέβηκε!');
   };
 
@@ -387,6 +449,7 @@ function ChatUI({ user }) {
               onClick={handleMic}
               className={`rounded-full p-2 border ${isListening ? 'bg-green-200 border-green-400' : 'bg-white border-gray-300'} transition`}
               title={isListening ? "Σταμάτησε" : "Χρήση μικροφώνου"}
+              type="button"
             >
               <svg width={18} height={18} fill="none" stroke="black" strokeWidth={1.5} viewBox="0 0 20 20">
                 <circle cx="10" cy="10" r="8" stroke="#333" strokeWidth="1.5" fill={isListening ? '#4ade80' : '#fff'} />
@@ -412,6 +475,7 @@ function ChatUI({ user }) {
               onClick={handleSend}
               style={{ fontSize: 13 }}
               disabled={showPayment}
+              type="button"
             >
               Αποστολή
             </button>
@@ -426,7 +490,7 @@ function ChatUI({ user }) {
         {/* Payment */}
         {showPayment && <PaymentBanner onClose={() => setShowPayment(false)} onStripe={handleStripe} />}
         {/* Banner */}
-        <Banner content={banners[bannerKey]} onClose={() => setBannerKey(null)} />
+        <Banner content={bannerKey ? banners[bannerKey] : undefined} onClose={() => setBannerKey(null)} />
       </main>
     </div>
   );
@@ -434,10 +498,9 @@ function ChatUI({ user }) {
 
 // === ROOT APP ===
 export default function Home() {
-  const [step, setStep] = useState('welcome');
-  const [email, setEmail] = useState("closter.services@gmail.com");
+  const [step, setStep] = useState<'welcome' | 'verify' | 'chat'>('welcome');
+  const [email] = useState("closter.services@gmail.com");
 
-  // Google Sign-in Handler (replace with your logic)
   const handleGoogle = () => {
     setStep('verify');
     // Add here your real Google OAuth handler
