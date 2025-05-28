@@ -2,7 +2,7 @@
 import { useState } from 'react';
 
 export default function Home() {
-  const [messages, setMessages] = useState<{ from: string; text: string }[]>([]);
+ const [messages, setMessages] = useState<{ from: string; text: string }[]>([]);
   const [input, setInput] = useState('');
 
   const handleSend = () => {
