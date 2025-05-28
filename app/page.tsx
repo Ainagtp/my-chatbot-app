@@ -2,14 +2,14 @@
 import { useState } from 'react';
 
 export default function Home() {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<{ from: string; text: string }[]>([]);
   const [input, setInput] = useState('');
 
   const handleSend = () => {
     if (!input.trim()) return;
     setMessages([...messages, { from: 'user', text: input }]);
     setInput('');
-    // Dummy bot response
+    // Dummy bot απάντηση
     setTimeout(() => {
       setMessages(m => [...m, { from: 'bot', text: 'Bot απάντηση: ' + input }]);
     }, 700);
